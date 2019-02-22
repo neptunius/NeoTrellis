@@ -25,11 +25,6 @@ trellis.pixels.brightness = 0.1
 trellis.pixels.fill(0)
 
 pixel_colors = [None] * 32
-found_pairs = 0
-previously_pressed = set([])
-first_pixel = None
-
-key_pressed = None
 
 def index_of(coord):
     x, y = coord
@@ -112,12 +107,14 @@ def check_for_key(last_pressed):
         return now_pressed, list(new_presses)[0]
     return now_pressed, None
 
-demo_mode_enabled = True
-while True:
+def play_game():
+    demo_mode_enabled = True
     trellis.pixels.fill(0x000000)
     assign_colors()
-    found_pairs = 0
+    previously_pressed = set([])
+    key_pressed = None
     first_pixel = None
+    found_pairs = 0
     remaining = [(x, y) for x in range(8) for y in range(4)]
     while found_pairs < 16:
         if demo_mode_enabled:
@@ -141,3 +138,11 @@ while True:
             found_pairs, first_pixel = handle_key(key_pressed, found_pairs, first_pixel)
     if found_pairs == 16:
         splash()
+
+def main_loop():
+    while True:
+        play_game()
+
+
+if __name__ == '__main__':
+    main_loop()
