@@ -1,10 +1,10 @@
 """NeoTrellis M4 code entry point."""
 
 
-import memory
+import corners
 
 if __name__ == '__main__':
-    memory.main_loop()
+    corners.main_loop()
 
     # Rainbow mode!
     # while True:
