@@ -107,8 +107,7 @@ def check_for_key(last_pressed):
         return now_pressed, list(new_presses)[0]
     return now_pressed, None
 
-def play_game():
-    demo_mode_enabled = True
+def play_game(demo_mode):
     trellis.pixels.fill(0x000000)
     assign_colors()
     previously_pressed = set([])
@@ -117,18 +116,16 @@ def play_game():
     found_pairs = 0
     remaining = [(x, y) for x in range(8) for y in range(4)]
     while found_pairs < 16:
-        if demo_mode_enabled:
+        if demo_mode:
             previously_pressed, key_pressed = check_for_key(previously_pressed)
             if key_pressed:
-                demo_mode_enabled = False
-                break
+                return False
             first = random.choice(remaining)
             remaining.remove(first)
             found_pairs, first_pixel = handle_key(first, found_pairs, first_pixel)
             previously_pressed, key_pressed = check_for_key(previously_pressed)
             if key_pressed:
-                demo_mode_enabled = False
-                break
+                return False
             c = pixel_colors[index_of(first)]
             match = random.choice([x for x in remaining if pixel_colors[index_of(x)] == c])
             found_pairs, first_pixel = handle_key(match, found_pairs, first_pixel)
@@ -140,8 +137,9 @@ def play_game():
         splash()
 
 def main_loop():
+    demo_mode = True
     while True:
-        play_game()
+        demo_mode = play_game(demo_mode)
 
 
 if __name__ == '__main__':
