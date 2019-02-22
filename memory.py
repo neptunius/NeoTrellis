@@ -120,35 +120,36 @@ def check_for_key(last_pressed):
     now_pressed = set(trellis.pressed_keys)
     new_presses = now_pressed - last_pressed
     if new_presses:
-        return now_pressed, list(new_presses)[0]
-    return now_pressed, None
+        return now_pressed, list(new_presses)
+    return now_pressed, []
 
 def play_game(demo_mode):
     trellis.pixels.fill(0x000000)
     assign_colors()
     previously_pressed = set([])
-    key_pressed = None
+    keys_pressed = []
     first_pixel = None
     found_pairs = 0
     remaining = [(x, y) for x in range(8) for y in range(4)]
     while found_pairs < 16:
         if demo_mode:
-            previously_pressed, key_pressed = check_for_key(previously_pressed)
-            if key_pressed:
+            previously_pressed, keys_pressed = check_for_key(previously_pressed)
+            if keys_pressed:
                 return False
             first = random.choice(remaining)
             remaining.remove(first)
             found_pairs, first_pixel = handle_key(first, found_pairs, first_pixel)
-            previously_pressed, key_pressed = check_for_key(previously_pressed)
-            if key_pressed:
+            previously_pressed, keys_pressed = check_for_key(previously_pressed)
+            if keys_pressed:
                 return False
             c = pixel_colors[index_of(first)]
             match = random.choice([x for x in remaining if pixel_colors[index_of(x)] == c])
             found_pairs, first_pixel = handle_key(match, found_pairs, first_pixel)
             remaining.remove(match)
         else:
-            previously_pressed, key_pressed = check_for_key(previously_pressed)
-            found_pairs, first_pixel = handle_key(key_pressed, found_pairs, first_pixel)
+            previously_pressed, keys_pressed = check_for_key(previously_pressed)
+            for key in keys_pressed:
+                found_pairs, first_pixel = handle_key(key, found_pairs, first_pixel)
     if found_pairs == 16:
         splash()
 
