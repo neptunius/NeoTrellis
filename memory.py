@@ -48,17 +48,32 @@ def cycle_sequence(seq):
         for elem in seq:
             yield elem
 
-def rainbow_lamp(seq):
+# def rainbow_pixel(seq, key):
+#     g = cycle_sequence(seq)
+#     while True:
+#         yield
+
+def rainbow_lamp(seq, key=None):
     g = cycle_sequence(seq)
     while True:
-        trellis.pixels.fill(wheel(next(g)))
+        color = wheel(next(g))
+        if key:
+            trellis.pixels[key] = color
+        else:
+            trellis.pixels.fill(color)
         yield
 
-def splash():
-    rainbow = rainbow_lamp(range(0, 256, 8))
-    for _ in range(64):
+def splash(cycles=64, key=None):
+    rainbow = rainbow_lamp(range(0, 256, 8), key)
+    for _ in range(cycles):
         next(rainbow)
         time.sleep(0.005)
+
+# def splash_pixel(key):
+#     rainbow = rainbow_pixel(range(0, 256, 8), key)
+#     for _ in range(96):
+#         next(rainbow)
+#         time.sleep(0.005)
 
 def assign_colors():
     unassigned = [(x, y) for x in range(8) for y in range(4)]
@@ -76,7 +91,8 @@ def handle_key(key, _found_pairs, _first_pixel):
         return _found_pairs, _first_pixel
     key_color = pixel_colors[index_of(key)]
     if key_color is not None:
-        trellis.pixels[key] = pixel_colors[index_of(key)]
+        splash(96, key)
+        trellis.pixels[key] = key_color
         time.sleep(0.5)
         if _first_pixel and _first_pixel != key:
             if key_color == pixel_colors[index_of(_first_pixel)]:
