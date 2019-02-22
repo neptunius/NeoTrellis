@@ -4,8 +4,8 @@ import time
 import random
 import adafruit_trellism4
 
-COLORS = [0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF]
-RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA = COLORS
+COLORS = [0xFF0000, 0xFF5F00, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF]
+RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, MAGENTA = COLORS
 BLACK, WHITE, GRAY, DARK_GRAY = 0x000000, 0xFFFFFF, 0x444444, 0x222222
 
 def is_valid(coord):
@@ -31,17 +31,19 @@ class Game:
     def __init__(self):
         self.trellis = adafruit_trellism4.TrellisM4Express(rotation=0)
         self.trellis.pixels.brightness = 0.05
-        self.trellis.pixels.fill(RED)
+        # self.trellis.pixels.fill(RED)
 
         self.last_pressed_keys = set([])
-        self.create_board()
+        # self.create_board()
+        self.offset = 0
 
     def create_board(self):
         # self.board = [[GRAY for col in range(8)] for row in range(4)]
         # self.board = [[random.choice(COLORS) for col in range(8)] for row in range(4)]
         # self.board = [random.choice(COLORS) for index in range(8*4)]
-        # self.board = [COLORS[index % len(COLORS)] for index in range(8*4)]
-        self.board = [DARK_GRAY for index in range(8*4)]
+        self.board = [COLORS[(index + self.offset) % len(COLORS)] for index in range(8*4)]
+        self.offset -= 1
+        # self.board = [DARK_GRAY for index in range(8*4)]
         self.color_board()
 
     def keys_pressed(self):
@@ -130,6 +132,7 @@ class Game:
         player = BLUE
         won = False
         while not won:
+            self.create_board()
             self.color_board()
             # time.sleep(0.5)
             # Handle key input
