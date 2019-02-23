@@ -196,7 +196,8 @@ class Game:
                         self.flash_keys(witness, player, 5)
                 else:
                     self.wipe(player, delay=0.05, direction='outward')
-                    player = BLUE if player is RED else RED
+                    cycle = {RED: GREEN, GREEN: BLUE, BLUE: MAGENTA, MAGENTA: RED}
+                    player = cycle[player]
                     self.wipe(player, delay=0.1, direction='inward')
                     self.color_board()
 
