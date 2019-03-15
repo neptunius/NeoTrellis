@@ -2,8 +2,11 @@
 
 
 if __name__ == '__main__':
-    import corners
-    corners.main_loop()
+    # import corners
+    # corners.main_loop()
+
+    import lasers
+    lasers.main()
 
     # Rainbow mode!
     # import memory
