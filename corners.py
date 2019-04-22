@@ -1,9 +1,8 @@
 """Corners: An adversarial game of squares."""
 
-import time
-import random
-import adafruit_trellism4
+from adafruit_trellism4 import TrellisM4Express
 from colors import *
+from time import sleep
 
 
 def add_coords(pointA, pointB):
@@ -28,22 +27,23 @@ def outward_from(coord):
 class Game:
 
     def __init__(self):
-        self.trellis = adafruit_trellism4.TrellisM4Express(rotation=0)
-        self.trellis.pixels.brightness = 0.02  # 0.1  # 0.2  #
+        self.trellis = TrellisM4Express(rotation=0)
+        self.trellis.pixels.brightness = 0.04  # 0.1  # 0.2  #
         self.last_pressed_keys = set([])
         self.last_pressed_key = (0, 0)  # (8, 8)
-        self.blank_color = GRAY  # DARK_GRAY  # LIGHT_GRAY
+        self.blank_color = DARK_GRAY  # GRAY  # LIGHT_GRAY
         self.rainbow_offset = 0
+        self.create_board()
 
     def rainbow_board(self):
         for _ in range(8):
             self.board = [COLORS[(i + self.rainbow_offset) % 7] for i in range(8*4)]
             self.rainbow_offset -= 1
             self.color_board()
+        self.create_board()  # reset board
 
     def create_board(self):
         self.board = [self.blank_color for index in range(8*4)]
-        self.color_board()
 
     def keys_pressed(self):
         now_pressed = set(self.trellis.pressed_keys)
@@ -54,8 +54,16 @@ class Game:
     def fill_board(self, color=WHITE):
         self.trellis.pixels.fill(color)
 
+    def flash_board(self, color=GRAY, times=3, delay=0.1):
+        for _ in range(times):
+            self.fill_board(color)  # given color
+            sleep(delay)
+            self.fill_board(self.blank_color)  # blank color
+            sleep(delay)
+        self.color_board()  # redraw board with key colors
+
     def color_board(self):
-        for row in (0, 3, 2, 1):
+        for row in (0, 1, 2, 3):
             for col in range(8):
                 key = col, row
                 color = self.board[index_of(key)]
@@ -66,14 +74,12 @@ class Game:
             key_color = self.board[index_of(key)] if color is None else color
             self.trellis.pixels[key] = key_color
 
-    def flash_keys(self, keys, color=None, times=3, delay=0.1):
-        for _ in range(times-1):
-            self.color_keys(keys, BLACK)
-            time.sleep(delay)
-            self.color_keys(keys, color)
-            time.sleep(delay)
-        self.color_keys(keys)
-        time.sleep(delay)
+    def flash_keys(self, keys, color=GRAY, times=3, delay=0.1):
+        for _ in range(times):
+            self.color_keys(keys, color)  # given color
+            sleep(delay)
+            self.color_keys(keys)  # original key color
+            sleep(delay)
 
     def wipe(self, color, delay=0.1, direction='inward'):
         for col in range(4):
@@ -81,7 +87,7 @@ class Game:
             row_coords1 = [(col, row) for row in range(4)]
             row_coords2 = [(7-col, row) for row in range(4)]
             self.color_keys(row_coords1 + row_coords2, color)
-            time.sleep(delay)
+            sleep(delay)
 
     def find_winner(self, coord):
         player = self.board[index_of(coord)]
@@ -100,15 +106,16 @@ class Game:
                     color3 = self.board[index_of(coord3)]
                     coords = [coord, coord1, coord2, coord3]
                     colors = [player, color1, color2, color3]
-                    self.flash_keys(coords, color=LIGHT_GRAY, delay=0.02)
+                    self.flash_keys(coords, color=LIGHT_GRAY, times=2, delay=0.05)
                     if all(color == player for color in colors):
                         witness = (coord, coord1, coord2, coord3)
-                        self.flash_keys(witness, player, 5)
+                        # self.flash_keys(witness, color=player, times=5)
                         return witness
 
     def play(self):
         keys_pressed = []
-        PLAYERS = 4
+        PLAYERS = [RED, GREEN, BLUE, VIOLET]
+        NUM_PLAYERS = 4
         player = RED
         won = False
         while not won:
@@ -133,30 +140,25 @@ class Game:
                 # TODO: check if this breaks multiple inputs
                 self.last_pressed_key = key
                 self.board[index_of(key)] = player
-                self.flash_keys([key], player)
+                self.flash_keys([key], color=LIGHT_GRAY)
                 witness = self.find_winner(key)
-                if witness:
-                    won = True
-                    self.fill_board(WHITE)
-                    time.sleep(0.2)
-                    for _ in range(5):
-                        self.color_board()
-                        time.sleep(0.2)
-                        self.fill_board(player)
-                        time.sleep(0.2)
-                        self.color_board()
-                        self.flash_keys(witness, player, 5)
-                else:
-                    self.wipe(player, delay=0.05, direction='outward')
-                    player = COLORS[(COLORS.index(player) + 1) % PLAYERS]
-                    self.wipe(player, delay=0.05, direction='inward')
+                won = witness is not None
+                if not won:
+                    self.wipe(player, delay=0.03, direction='outward')
+                    player = PLAYERS[(PLAYERS.index(player) + 1) % NUM_PLAYERS]
+                    self.wipe(player, delay=0.03, direction='inward')
                     self.color_board()
+        if won:
+            for _ in range(2):
+                self.flash_board(color=player, times=3, delay=0.2)
+                if witness:
+                    self.flash_keys(witness, color=LIGHT_GRAY, times=5, delay=0.1)
+            sleep(1.0)
 
 def main_loop():
     game = Game()
     while True:
         game.rainbow_board()
-        game.create_board()
         game.play()
 
 
